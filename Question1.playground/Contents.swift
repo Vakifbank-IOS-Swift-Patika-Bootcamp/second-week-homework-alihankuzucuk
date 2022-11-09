@@ -41,6 +41,10 @@ class Company: CompanyProtocol {
         companyEmployees[self.companyEmployeeCount] = employee
     }
     
+    /**
+     This function calculates sum of all Employees' salary in the Company
+     Then decrease totalSalaryPayments from the Budget of the Company
+     */
     func paySalariesOfEmployees(completion: (() -> Void)? = nil) {
         var totalSalaryPayments: Double = 0
         for index in 0..<self.companyEmployeeCount {
