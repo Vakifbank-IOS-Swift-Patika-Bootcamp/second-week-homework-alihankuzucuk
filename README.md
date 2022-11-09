@@ -17,18 +17,19 @@
  
 
 2- Playground üzerinden bir hayvanat bahçesi yönetimi yazılımı oluşturacağız. Aşağıdaki maddeleri karşılamalıdır.
+[:arrow_right: Go to Solution](./Question2.playground/Contents.swift)
 --
 
-- Bahçemizde hayvanlarımız, bakıcılarımız olacak.
-- Hayvanat bahçemizin hem bir günlük su limiti hem de bit bütçesi olacak.
-- Hayvanat bahçesine gelir, gider eklemesi ve su limiti artırma yapılabilmelidir.
-- Hayvanların su tüketimleri, sesleri olmalı
-- Her hayvanın tek bakıcısı olmalıdır ancak bakıcılar birden fazla hayvana bakabilmelidir.
-- Bulunan hayvanların su tüketimleri günlük limitten düşmelidir.
-- Bakıcıların maaş ödemelerini yapılabilmeli. Hesap formulü kararı size bırakılmıştır.
-- Sonradan bakıcı ve hayvan eklemesi yapılabilmelidir. 
-- Aynı hayvandan 1 den fazla olabilmelidir.
-- Protocol, closure, optional, computed property kullanımı zorunludur.
+- :white_check_mark: Bahçemizde hayvanlarımız, bakıcılarımız olacak.
+- :white_check_mark: Hayvanat bahçemizin hem bir günlük su limiti hem de bit bütçesi olacak.
+- :white_check_mark: Hayvanat bahçesine gelir, gider eklemesi ve su limiti artırma yapılabilmelidir.
+- :white_check_mark: Hayvanların su tüketimleri, sesleri olmalı
+- :white_check_mark: Her hayvanın tek bakıcısı olmalıdır ancak bakıcılar birden fazla hayvana bakabilmelidir.
+- :white_check_mark: Bulunan hayvanların su tüketimleri günlük limitten düşmelidir.
+- :white_check_mark: Bakıcıların maaş ödemelerini yapılabilmeli. Hesap formulü kararı size bırakılmıştır.
+- :white_check_mark: Sonradan bakıcı ve hayvan eklemesi yapılabilmelidir. 
+- :white_check_mark: Aynı hayvandan 1 den fazla olabilmelidir.
+- :white_check_mark: Protocol, closure, optional, computed property kullanımı zorunludur.
 
 3- Pragmatic Programmer 5,6,7 chapterlar özetlenmelidir.
 --
