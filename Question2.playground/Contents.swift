@@ -9,7 +9,9 @@ protocol ZooProtocol {
     func add(zooKeeper: ZooKeeper)
     func add(animal: Animal, completion: (() -> Void)?)
     
-    func waterAnimals()
+    func waterAnimals(completion: ((WateringState) -> Void)?)
+    
+    func paySalariesOfZooKeepers(completion: ((PaymentState) -> Void)?)
 }
 
 protocol ZooKeeperProtocol {
@@ -75,15 +77,28 @@ class Zoo: ZooProtocol {
     
     /**
      This function calculates the total water consumption of animals in the zoo
-     and decrease totalWaterConsumption from the Zoo's dailyWaterConsumption
+     Then checks if dailyWaterLimit can afford to totalWaterConsumption
+     If dailyWaterLimit can afford totalWaterConsumption, decrease totalWaterConsumption from the Zoo's dailyWaterConsumption
      */
-    func waterAnimals() {
+    func waterAnimals(completion: ((WateringState) -> Void)? = nil) {
         var totalWaterConsumption = 0
         for index in 0..<self.zooAnimals.count {
             totalWaterConsumption += zooAnimals[index]!.dailyWaterConsumption
         }
         
-        decreaseOf(dailyWaterLimit: totalWaterConsumption)
+        if completion != nil {
+            if self.dailyWaterLimit < totalWaterConsumption {
+                completion!(WateringState.inefficientWatering)
+            } else {
+                self.decreaseOf(dailyWaterLimit: totalWaterConsumption)
+                
+                completion!(WateringState.wateringSuccessful)
+            }
+        } else {
+            if self.dailyWaterLimit < totalWaterConsumption {
+                self.decreaseOf(dailyWaterLimit: totalWaterConsumption)
+            }
+        }
     }
     
     /**
@@ -149,15 +164,28 @@ class Zoo: ZooProtocol {
     
     /**
      This function calculates sum of all ZooKeepers' salary in the Zoo
-     Then decrease totalSalaryPayments from the Budget of the Zoo
+     Then checks if budget can afford to totalSalaryPayments
+     If budget can afford totalSalaryPayments, decrease totalSalaryPayments from the Budget of the Zoo
      */
-    func paySalariesOfZooKeepers() {
+    func paySalariesOfZooKeepers(completion: ((PaymentState) -> Void)? = nil) {
         var totalSalaryPayments: Double = 0
         for index in 0..<self.zooKeepers.count {
             totalSalaryPayments += zooKeepers[index]!.salary
         }
         
-        self.decreaseOf(budget: totalSalaryPayments)
+        if completion != nil {
+            if self.zooBudget < totalSalaryPayments {
+                completion!(PaymentState.inefficientBudget)
+            } else {
+                self.decreaseOf(budget: totalSalaryPayments)
+                
+                completion!(PaymentState.paymentSuccessful)
+            }
+        } else {
+            if self.zooBudget < totalSalaryPayments {
+                self.decreaseOf(budget: totalSalaryPayments)
+            }
+        }
     }
 }
 
@@ -200,6 +228,16 @@ struct Animal: AnimalProtocol {
     }
 }
 
+enum PaymentState {
+    case paymentSuccessful
+    case inefficientBudget
+}
+
+enum WateringState {
+    case wateringSuccessful
+    case inefficientWatering
+}
+
 var zoo = Zoo(dailyWaterLimit: 1_000, zooBudget: 1_000_000)
 
 zoo.add(zooKeeper: ZooKeeper("Alihan KUZUCUK"))
@@ -211,3 +249,21 @@ zoo.add(animal: Animal(animalName: "King Leo", breedOfAnimal: "Leo", dailyWaterC
 zoo.findByName(ofZooKeeper: "Alihan KUZUCUK")?.liableAnimalNames
 zoo.findByName(ofZooKeeper: "Alihan KUZUCUK")?.salary
 zoo.add(animal: Animal(animalName: "Leo", breedOfAnimal: "Leo", dailyWaterConsumption: 5, animalNoise: "Hrrrrr"))
+
+zoo.waterAnimals{ wateringState in
+    switch (wateringState) {
+        case .wateringSuccessful:
+        print("\(zoo.zooAnimals.count) animal watered on daily water limit. New water limit is now \(zoo.dailyWaterLimit)")
+        case .inefficientWatering:
+            print("\(zoo.zooAnimals.count) animal in the zoo couldn't watered. Daily water limit is inefficient")
+    }
+}
+
+zoo.paySalariesOfZooKeepers { paymentState in
+    switch (paymentState) {
+        case .paymentSuccessful:
+            print("\(zoo.zooKeepers.count) salary paid on Zoo Budget. New budget is now \(zoo.zooBudget)")
+        case .inefficientBudget:
+            print("Salary of \(zoo.zooKeepers.count) zookeeper couldn't paid. Budget is inefficient")
+    }
+}

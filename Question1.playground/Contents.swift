@@ -4,7 +4,7 @@ protocol CompanyProtocol {
     func increaseOf(budget amount: Double)
     func decreaseOf(budget amount: Double)
     func add(employee: Employee)
-    func paySalariesOfEmployees(completion: (() -> Void)?)
+    func paySalariesOfEmployees(completion: ((PaymentState) -> Void)?)
 }
 
 protocol EmployeeProtocol {
@@ -43,18 +43,27 @@ class Company: CompanyProtocol {
     
     /**
      This function calculates sum of all Employees' salary in the Company
-     Then decrease totalSalaryPayments from the Budget of the Company
+     Then checks if budget can afford to totalSalaryPayments
+     If budget can afford totalSalaryPayments, decrease totalSalaryPayments from the Budget of the Company
      */
-    func paySalariesOfEmployees(completion: (() -> Void)? = nil) {
+    func paySalariesOfEmployees(completion: ((PaymentState) -> Void)? = nil) {
         var totalSalaryPayments: Double = 0
         for index in 0..<self.companyEmployeeCount {
             totalSalaryPayments += companyEmployees[index]!.calculateSalary()
         }
         
-        self.decreaseOf(budget: totalSalaryPayments)
-        
         if completion != nil {
-            completion!()
+            if self.companyBudget < totalSalaryPayments {
+                completion!(PaymentState.inefficientBudget)
+            } else {
+                self.decreaseOf(budget: totalSalaryPayments)
+                
+                completion!(PaymentState.paymentSuccessful)
+            }
+        } else {
+            if self.companyBudget < totalSalaryPayments {
+                self.decreaseOf(budget: totalSalaryPayments)
+            }
         }
     }
 }
@@ -81,6 +90,11 @@ enum EmployeeType: Int {
     case senior = 3
 }
 
+enum PaymentState {
+    case paymentSuccessful
+    case inefficientBudget
+}
+
 var vakifBank: Company
 
 vakifBank = Company(companyName: "VakifBank", companyBudget: 500_000, companyFoundationYear: 1954)
@@ -90,6 +104,11 @@ vakifBank.add(employee: Employee(employeeName: "Alihan KUZUCUK", employeeAge: 25
 
 vakifBank.add(employee: Employee(employeeName: "Kaan YILDIRIM", employeeAge: 30, employeeMaritalStatus: EmployeeMaritalStatus.single, employeeType: EmployeeType.senior))
 
-vakifBank.paySalariesOfEmployees {
-    print("\(vakifBank.companyEmployeeCount) salary paid on Company Budget. New budget is now \(vakifBank.companyBudget)")
+vakifBank.paySalariesOfEmployees{ paymentState in
+    switch (paymentState) {
+        case .paymentSuccessful:
+            print("\(vakifBank.companyEmployeeCount) salary paid on Company Budget. New budget is now \(vakifBank.companyBudget)")
+        case .inefficientBudget:
+            print("Salary of \(vakifBank.companyEmployeeCount) employee couldn't paid. Budget is inefficient")
+    }
 }
