@@ -7,10 +7,14 @@ protocol ZooProtocol {
     func decreaseOf(dailyWaterLimit amount: Int)
     
     func add(zooKeeper: ZooKeeper)
-    func add(animal: Animal, completion: (() -> Void)?)
+    func add(animal: Animal, assignedZooKeeper: String, completion: ((_ nameOfAnimal:String, _ nameOfZooKeeper: String) -> Void)?)
     
     func waterAnimals(completion: ((WateringState) -> Void)?)
     
+    func findByName(ofZooKeeper name: String) -> ZooKeeper?
+    func findByName(ofAnimal name: String) -> Animal?
+    func isAnimalHasAnyZooKeeper(animalName name: String) -> Bool
+    func assignResponsibility(zooKeeperName: String, animalName: String) -> Bool
     func paySalariesOfZooKeepers(completion: ((PaymentState) -> Void)?)
 }
 
@@ -23,11 +27,11 @@ protocol AnimalProtocol {
 }
 
 class Zoo: ZooProtocol {
-    var dailyWaterLimit: Int
-    var zooBudget: Double
+    private var dailyWaterLimit: Int
+    private var zooBudget: Double
     
-    var zooKeepers = [Int: ZooKeeper]()
-    var zooAnimals = [Int: Animal]()
+    private var zooKeepers = [Int: ZooKeeper]()
+    private var zooAnimals = [Int: Animal]()
     
     init(dailyWaterLimit: Int, zooBudget: Double) {
         self.dailyWaterLimit = dailyWaterLimit
@@ -50,6 +54,11 @@ class Zoo: ZooProtocol {
         self.dailyWaterLimit -= amount
     }
     
+    func getDailyWaterLimit() -> Int { self.dailyWaterLimit }
+    func getZooBudget() -> Double { self.zooBudget }
+    func getZooKeepersCount() -> Int { self.zooKeepers.count }
+    func getAnimalsCount() -> Int { self.zooAnimals.count }
+    
     /**
      This function adds a ZooKeeper to the Zoo, if there isn't any ZooKeeper
      with the same name in the Zoo
@@ -61,17 +70,23 @@ class Zoo: ZooProtocol {
     }
     
     /**
-     This function adds a Animal to the Zoo, if there isn't any Animal
-     with the same name in the Zoo with the CompletionBlock which is allows
-     to assign a ZooKeeper after added the Animal
+     This function adds an Animal to the Zoo, if there isn't any Animal
+     with the same name in the Zoo and assigns to the ZooKeeper because of
+     new animal has no any ZooKeeper
      */
-    func add(animal: Animal, completion: (() -> Void)? = nil) {
+    func add(animal: Animal, assignedZooKeeper: String, completion: ((_ nameOfAnimal:String, _ nameOfZooKeeper: String) -> Void)? = nil) {
         if findByName(ofAnimal: animal.animalName) == nil {
-            zooAnimals[(zooAnimals.count>0 ? zooAnimals.count : 0)] = animal
-        }
-        
-        if completion != nil {
-            completion!()
+            if findByName(ofZooKeeper: assignedZooKeeper) != nil {
+                zooAnimals[(zooAnimals.count>0 ? zooAnimals.count : 0)] = animal
+                
+                if completion != nil {
+                    if assignResponsibility(zooKeeperName: assignedZooKeeper, animalName: animal.animalName) {
+                        completion!(animal.animalName, assignedZooKeeper)
+                    }
+                } else {
+                    assignResponsibility(zooKeeperName: assignedZooKeeper, animalName: animal.animalName)
+                }
+            }
         }
     }
     
@@ -147,7 +162,7 @@ class Zoo: ZooProtocol {
      Then checks for if given Animal has any ZooKeeper
      Then assigns ZooKeeper to the Animal
      */
-    func assignResponsibility(zooKeeperName: String, animalName: String)
+    func assignResponsibility(zooKeeperName: String, animalName: String) -> Bool
     {
         // Checks for ZooKeeper exists
         if let zooKeeper = self.findByName(ofZooKeeper: zooKeeperName) {
@@ -157,9 +172,11 @@ class Zoo: ZooProtocol {
                 if isAnimalHasAnyZooKeeper(animalName: animal.animalName) != true {
                     // Assings ZooKeeper to the Animal
                     zooKeeper.liableAnimalNames[(zooKeeper.liableAnimalNames.count > 0 ? zooKeeper.liableAnimalNames.count : 0)] = animal.animalName
+                    return true
                 }
             }
         }
+        return false
     }
     
     /**
@@ -238,32 +255,55 @@ enum WateringState {
     case inefficientWatering
 }
 
+// Zoo was established with 1000 liter of daily water limit and 1,000,000 budget
 var zoo = Zoo(dailyWaterLimit: 1_000, zooBudget: 1_000_000)
 
+// Alihan KUZUCUK is a new Zoo Keeper in the Zoo, not assigned any Animal yet
 zoo.add(zooKeeper: ZooKeeper("Alihan KUZUCUK"))
+
+// Because of Alihan KUZUCUK has no responsible animal his salary is low, he wants to look animals
 zoo.findByName(ofZooKeeper: "Alihan KUZUCUK")?.salary
-zoo.add(animal: Animal(animalName: "King Leo", breedOfAnimal: "Leo", dailyWaterConsumption: 10, animalNoise: "Krrrrr")) {
-    zoo.assignResponsibility(zooKeeperName: "Alihan KUZUCUK", animalName: "King Leo")
+
+// Assigned to the new Zoo Keeper Alihan KUZUCUK an animal with closure
+zoo.add(animal: Animal(animalName: "King Leo", breedOfAnimal: "Leo", dailyWaterConsumption: 10, animalNoise: "Krrrrr"), assignedZooKeeper: "Alihan KUZUCUK") { nameOfAnimal, nameOfZooKeeper in
+    print("\(nameOfAnimal) added to the Zoo by assigning to the \(nameOfZooKeeper)")
 }
 
+// Alihan KUZUCUK's responsible animals is listed here
 zoo.findByName(ofZooKeeper: "Alihan KUZUCUK")?.liableAnimalNames
-zoo.findByName(ofZooKeeper: "Alihan KUZUCUK")?.salary
-zoo.add(animal: Animal(animalName: "Leo", breedOfAnimal: "Leo", dailyWaterConsumption: 5, animalNoise: "Hrrrrr"))
 
+// Alihan KUZUCUK's salary is increased
+zoo.findByName(ofZooKeeper: "Alihan KUZUCUK")?.salary
+
+// We can also assign an animal with no closure because it is an optinal parameter
+zoo.add(animal: Animal(animalName: "Leo", breedOfAnimal: "Leo", dailyWaterConsumption: 5, animalNoise: "Hrrrrr"), assignedZooKeeper: "Alihan KUZUCUK")
+
+// Alihan KUZUCUK's responsible animals is listed here
+zoo.findByName(ofZooKeeper: "Alihan KUZUCUK")?.liableAnimalNames
+
+// Alihan KUZUCUK's salary is increased
+zoo.findByName(ofZooKeeper: "Alihan KUZUCUK")?.salary
+
+// Animals are thirsty, If Alihan doesn't give water to them, he will die
+zoo.findByName(ofAnimal: "King Leo")?.noise()
+zoo.findByName(ofAnimal: "Leo")?.noise()
+
+// Animals watered from the Zoo's daily water limit
 zoo.waterAnimals{ wateringState in
     switch (wateringState) {
         case .wateringSuccessful:
-        print("\(zoo.zooAnimals.count) animal watered on daily water limit. New water limit is now \(zoo.dailyWaterLimit)")
+            print("\(zoo.getAnimalsCount()) animal watered on daily water limit. New water limit is now \(zoo.getDailyWaterLimit())")
         case .inefficientWatering:
-            print("\(zoo.zooAnimals.count) animal in the zoo couldn't watered. Daily water limit is inefficient")
+            print("\(zoo.getAnimalsCount()) animal in the zoo couldn't watered. Daily water limit is inefficient")
     }
 }
 
+// ZooKeeper's get their salaries from the Zoo's budget
 zoo.paySalariesOfZooKeepers { paymentState in
     switch (paymentState) {
         case .paymentSuccessful:
-            print("\(zoo.zooKeepers.count) salary paid on Zoo Budget. New budget is now \(zoo.zooBudget)")
+            print("\(zoo.getZooKeepersCount()) salary paid on Zoo Budget. New budget is now \(zoo.getZooBudget())")
         case .inefficientBudget:
-            print("Salary of \(zoo.zooKeepers.count) zookeeper couldn't paid. Budget is inefficient")
+            print("Salary of \(zoo.getZooKeepersCount()) zookeeper couldn't paid. Budget is inefficient")
     }
 }
