@@ -6,6 +6,11 @@ protocol ZooProtocol {
     func increaseOf(dailyWaterLimit amount: Int)
     func decreaseOf(dailyWaterLimit amount: Int)
     
+    func getDailyWaterLimit() -> Int
+    func getZooBudget() -> Double
+    func getZooKeepersCount() -> Int
+    func getAnimalsCount() -> Int
+    
     func add(zooKeeper: ZooKeeper)
     func add(animal: Animal, assignedZooKeeper: String, completion: ((_ nameOfAnimal:String, _ nameOfZooKeeper: String) -> Void)?)
     
